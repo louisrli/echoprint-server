@@ -2,3 +2,4 @@ solr/solr/logs
 *.pyc
 .DS_Store
 solr/solr/data/index
+audio
