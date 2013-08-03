@@ -29,11 +29,11 @@ urls = (
 
 class ingest:
     def POST(self):
-        params = web.input(track_id="default", fp_code="", artist=None, release=None, track=None, length=None, codever=None)
-        if params.track_id == "default":
-            track_id = fp.new_track_id()
-        else:
-            track_id = params.track_id
+        params = web.input(fp_code="", artist=None, track=None, length=None, codever=None)
+
+        track_id = params.track_id
+        CODEVER = 4.21
+
         if params.length is None or params.codever is None:
             return web.webapi.BadRequest()
         
@@ -48,10 +48,13 @@ class ingest:
         data = {"track_id": track_id, 
                 "fp": code_string,
                 "length": params.length,
-                "codever": params.codever }
-        if params.artist: data["artist"] = params.artist
-        if params.release: data["release"] = params.release
-        if params.track: data["track"] = params.track
+                "codever": CODEVER }
+
+        if params.artist: 
+            data["artist"] = params.artist
+        if params.track: 
+            data["track"] = params.track
+
         fp.ingest(data, do_commit=True, local=False)
 
         return json.dumps({"track_id":track_id, "status":"ok"})
@@ -62,9 +65,9 @@ class query:
         return self.GET()
         
     def GET(self):
-        stuff = web.input(fp_code="")
-        response = fp.best_match_for_query(stuff.fp_code)
-        return json.dumps({"ok":True, "query":stuff.fp_code, "message":response.message(), "match":response.match(), "score":response.score, \
+        params = web.input(fp_code="")
+        response = fp.best_match_for_query(params.fp_code)
+        return json.dumps({"ok":True, "query":params.fp_code, "message":response.message(), "match":response.match(), "score":response.score, \
                         "qtime":response.qtime, "track_id":response.TRID, "total_time":response.total_time})
 
 
