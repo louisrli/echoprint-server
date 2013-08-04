@@ -32,18 +32,20 @@ CODEVER = 4.21
 
 class youtube:
     def POST(self):
-        params = web.input(youtube_url=None, start=None, stop=None)
+        params = web.input(youtubeurl=None, start=None, stop=None)
 
-        if not (params.youtube_url and params.start and params.stop):
+        if not (params.youtubeurl and params.start and params.stop):
             return web.webapi.BadRequest()
 
         # Extract the fingerprints from the videos
-        tag = yt.fingerprint_youtube(params.youtube_url, 
+        tag = yt.fingerprint_youtube(params.youtubeurl, 
                 int(params.start), int(params.stop))
 
         # Query the tag in the database
         best_match = _query_tag(tag['code'], tag)
-        return best_match
+        web.header('Content-Type', 'application/json')
+
+        return best_match or {}
 
 class query:
     def POST(self):
@@ -52,7 +54,7 @@ class query:
             filename = _save_file(params.mp3, "audio")
             tag = yt.generate_tag(filename)
 
-            print tag['code']
+            web.header('Content-Type', 'application/json')
             return _query_tag(tag['code'])
         else:
             return web.webapi.BadRequest()
@@ -92,8 +94,9 @@ def _query_tag(fp_code, query_obj=None):
 
     """
     response = fp.best_match_for_query(fp_code)
+    print response.message()
     if response:
-        return json.dumps({
+        d = {
             "ok":True, 
             "message":response.message(),
             "match":response.match(),
@@ -101,7 +104,15 @@ def _query_tag(fp_code, query_obj=None):
             "qtime":response.qtime, 
             "track_id":response.TRID, 
             "total_time":response.total_time
-            })
+        }
+
+        if "track" in response.metadata:
+            d["track"] = response.metadata["track"]
+        
+        if "artist" in response.metadata:
+            d["artist"] = response.metadata["artist"]
+
+        return json.dumps(d)
 
 
 application = web.application(urls, globals())#.wsgifunc()

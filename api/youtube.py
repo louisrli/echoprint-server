@@ -6,9 +6,6 @@ import logging
 from pyechonest import config
 from pyechonest import song
 
-logger = logging.getLogger('youtube')
-logger.setLevel(logging.INFO)
-
 # EchoNest API configuation
 config.ECHO_NEST_API_KEY = "VVCRHMDOSJTUONGDQ"
 config.CODEGEN_BINARY_OVERRIDE = subprocess.check_output(["which", "echoprint-codegen"]).strip()
@@ -41,7 +38,7 @@ def _download_audio(url):
     filename = "%s/%s.mp3" % (audio_dir, id)
 
     if os.path.exists(filename):
-        logger.info("Already have the file: %s" % filename)
+        logging.info("Already have the file: %s" % filename)
         return filename
 
     # Extract the mp3 file
